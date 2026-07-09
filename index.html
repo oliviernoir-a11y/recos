@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Recos — entre amis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFDF6; --ink:#1A1B25; --ink-soft:#5A5C6B;
+    --film:#2547D0; --serie:#7A3FF2; --bd:#F2B705; --livre:#0E8A5F; --resto:#E5484D; --autre:#6B7280;
+    --jaune:#FFE45C; --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:'Instrument Sans',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+    background-image:radial-gradient(rgba(26,27,37,.06) 1px, transparent 1px);background-size:22px 22px;}
+  .app{max-width:520px;margin:0 auto;padding:20px 16px 90px;min-height:100%}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.5px}
+  .logo .bang{display:inline-block;background:var(--jaune);border:2px solid var(--ink);border-radius:10px;padding:0 8px;transform:rotate(-3deg);box-shadow:3px 3px 0 var(--ink);margin-left:4px}
+  .who{font-size:13px;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:5px 12px;background:#fff;box-shadow:2px 2px 0 var(--ink);cursor:pointer}
+  .tagline{font-size:13.5px;color:var(--ink-soft);margin-bottom:18px}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{flex:1;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;padding:11px 8px;border:2px solid var(--ink);border-radius:var(--radius);background:#fff;cursor:pointer;transition:transform .08s}
+  .tab.active{background:var(--ink);color:#fff;box-shadow:3px 3px 0 rgba(26,27,37,.25)}
+  .tab:active{transform:translate(1px,1px)}
+
+  .panel{border:2px solid var(--ink);border-radius:20px;background:#fff;box-shadow:5px 5px 0 var(--ink);padding:22px 18px;text-align:center;margin-bottom:22px;position:relative;overflow:hidden}
+  .panel h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:17px;margin-bottom:4px}
+  .panel .hint{font-size:13px;color:var(--ink-soft);margin-bottom:16px}
+
+  .micwrap{position:relative;width:110px;height:110px;margin:0 auto 14px}
+  .pulse{position:absolute;inset:0;border-radius:50%;border:2px solid var(--ink);opacity:0;pointer-events:none}
+  .listening .pulse{animation:pulse 1.4s ease-out infinite}
+  .listening .pulse.p2{animation-delay:.7s}
+  @keyframes pulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.65);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.listening .pulse{animation:none}}
+  .mic{width:110px;height:110px;border-radius:50%;border:3px solid var(--ink);background:var(--jaune);box-shadow:5px 5px 0 var(--ink);font-size:44px;cursor:pointer;transition:transform .08s, background .2s;display:flex;align-items:center;justify-content:center;}
+  .mic:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+  .listening .mic{background:var(--resto)}
+  .micstate{font-size:13px;font-weight:600;min-height:18px}
+  .transcript{font-size:15px;font-style:italic;color:var(--ink-soft);min-height:22px;margin-top:8px;padding:0 6px}
+
+  .altrow{margin-top:14px;display:flex;gap:8px}
+  .altrow input{flex:1;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;background:var(--paper)}
+  .altrow button{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+  .altrow button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+
+  .spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--ink);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .confirm{border:2px solid var(--ink);border-radius:20px;background:#fff;box-shadow:5px 5px 0 var(--ink);padding:18px;margin-bottom:22px;text-align:left}
+  .confirm h3{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;margin-bottom:12px}
+  .confirm label{font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin:10px 0 4px}
+  .confirm input,.confirm select,.confirm textarea{width:100%;border:2px solid var(--ink);border-radius:10px;padding:9px 10px;font:inherit;font-size:14px;background:var(--paper)}
+  .confirm textarea{resize:vertical;min-height:54px}
+  .btnrow{display:flex;gap:10px;margin-top:16px}
+  .btn{flex:1;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;padding:12px;border:2px solid var(--ink);border-radius:14px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn.save{background:var(--jaune)}
+  .btn.ghost{background:#fff}
+
+  .answer{border:2px solid var(--ink);border-radius:20px;background:var(--jaune);box-shadow:5px 5px 0 var(--ink);padding:18px;margin-bottom:22px;font-size:15px;line-height:1.5;text-align:left}
+  .answer strong{font-family:'Bricolage Grotesque',sans-serif}
+
+  .feedhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+  .feedhead h2{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800}
+  .count{font-size:12px;color:var(--ink-soft)}
+  .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;font-size:12.5px;font-weight:600;padding:6px 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;cursor:pointer}
+  .chip.active{background:var(--ink);color:#fff}
+
+  .card{border:2px solid var(--ink);border-radius:18px;background:#fff;box-shadow:4px 4px 0 var(--ink);padding:14px 16px;margin-bottom:14px}
+  .cardtop{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .cat{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#fff;border:2px solid var(--ink);border-radius:8px;padding:2px 8px}
+  .cat.bd{color:var(--ink)}
+  .senti{font-size:16px}
+  .card h3{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700;line-height:1.2}
+  .card .comment{font-size:14px;color:var(--ink-soft);margin-top:6px;line-height:1.45}
+  .card .meta{font-size:12px;color:var(--ink-soft);margin-top:8px;display:flex;justify-content:space-between}
+  .card .meta b{color:var(--ink)}
+
+  .empty{border:2px dashed var(--ink);border-radius:18px;padding:26px 18px;text-align:center;color:var(--ink-soft);font-size:14px;line-height:1.5;background:rgba(255,255,255,.6)}
+  .empty b{color:var(--ink)}
+
+  .veil{position:fixed;inset:0;background:rgba(26,27,37,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal{background:#fff;border:2px solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--ink);padding:24px;max-width:340px;width:100%;text-align:center}
+  .modal h2{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin-bottom:6px}
+  .modal p{font-size:13.5px;color:var(--ink-soft);margin-bottom:14px}
+  .modal input{width:100%;border:2px solid var(--ink);border-radius:12px;padding:11px 12px;font:inherit;font-size:15px;background:var(--paper);margin-bottom:14px;text-align:center}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:14px;font-weight:600;padding:11px 18px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">Recos<span class="bang">!</span></div>
+    <button class="who" id="whoBtn">👤 …</button>
+  </header>
+  <p class="tagline">Films, séries, BD, livres, restos — recommandés à la voix, entre amis.</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tabReco">🎙️ Je recommande</button>
+    <button class="tab" id="tabAsk">💬 Je demande</button>
+  </div>
+
+  <div class="panel" id="panel">
+    <h2 id="panelTitle">Raconte ta dernière découverte</h2>
+    <p class="hint" id="panelHint">Ex. « J'ai adoré Star Wars l'attaque des clones » ou « Le resto Chez Marcel, bof »</p>
+    <div class="micwrap" id="micwrap">
+      <div class="pulse"></div><div class="pulse p2"></div>
+      <button class="mic" id="micBtn" aria-label="Enregistrer à la voix">🎙️</button>
+    </div>
+    <div class="micstate" id="micState">Appuie et parle</div>
+    <div class="transcript" id="liveTranscript"></div>
+    <div class="altrow">
+      <input id="textInput" placeholder="…ou écris-le ici" aria-label="Saisie texte">
+      <button id="textSend">OK</button>
+    </div>
+  </div>
+
+  <div class="confirm hidden" id="confirmBox">
+    <h3>✅ C'est bien ça ?</h3>
+    <label>Titre</label>
+    <input id="cTitre">
+    <label>Catégorie</label>
+    <select id="cType">
+      <option value="film">🎬 Film</option>
+      <option value="serie">📺 Série</option>
+      <option value="bd">💥 BD</option>
+      <option value="livre">📚 Livre</option>
+      <option value="resto">🍽️ Resto</option>
+      <option value="autre">✨ Autre</option>
+    </select>
+    <label>Verdict</label>
+    <select id="cSenti">
+      <option value="adore">😍 Adoré</option>
+      <option value="aime">🙂 Aimé</option>
+      <option value="bof">😐 Bof</option>
+      <option value="deteste">🤮 Détesté</option>
+    </select>
+    <label>Commentaire</label>
+    <textarea id="cComment"></textarea>
+    <div class="btnrow">
+      <button class="btn ghost" id="cCancel">Annuler</button>
+      <button class="btn save" id="cSave">Publier la reco</button>
+    </div>
+  </div>
+
+  <div class="answer hidden" id="answerBox"></div>
+
+  <div class="feedhead">
+    <h2>Le mur des recos</h2>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div id="feed"></div>
+
+</div>
+
+<div class="veil hidden" id="nameVeil">
+  <div class="modal">
+    <h2>Salut ! C'est qui ?</h2>
+    <p>Ton prénom apparaîtra sur tes recos, visibles par tout le cercle d'amis.</p>
+    <input id="nameInput" placeholder="Ton prénom" maxlength="24">
+    <button class="btn save" style="width:100%" id="nameSave">C'est parti</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================================================
+   CONFIG — la seule ligne à adapter si besoin.
+   URL de production du webhook n8n (workflow ACTIVÉ).
+   Pour tester en mode "Execute workflow", remplace
+   /webhook/ par /webhook-test/.
+======================================================== */
+const N8N_WEBHOOK = 'https://oreegami.app.n8n.cloud/webhook/recos-culturelles';
+
+/* ================= state ================= */
+const CATS = {
+  film:{label:'Film',emoji:'🎬',color:'var(--film)'},
+  serie:{label:'Série',emoji:'📺',color:'var(--serie)'},
+  bd:{label:'BD',emoji:'💥',color:'var(--bd)'},
+  livre:{label:'Livre',emoji:'📚',color:'var(--livre)'},
+  resto:{label:'Resto',emoji:'🍽️',color:'var(--resto)'},
+  autre:{label:'Autre',emoji:'✨',color:'var(--autre)'}
+};
+const SENTI = {adore:'😍',aime:'🙂',bof:'😐',deteste:'🤮'};
+let userName = null;
+let recos = [];
+let mode = 'reco';
+let filterCat = 'all';
+let filterWho = 'all';
+let backendOk = true;
+
+const $ = id => document.getElementById(id);
+const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); };
+
+/* ================= backend (n8n) ================= */
+async function api(action, data={}){
+  const resp = await fetch(N8N_WEBHOOK, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action, ...data})
+  });
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+
+/* ================= profile (local) ================= */
+function loadName(){
+  try{ userName = localStorage.getItem('recos-name'); }catch(e){ userName = null; }
+  if(!userName) $('nameVeil').classList.remove('hidden');
+  $('whoBtn').textContent = '👤 ' + (userName || '…');
+}
+function saveName(n){
+  userName = n;
+  try{ localStorage.setItem('recos-name', n); }catch(e){}
+  $('whoBtn').textContent = '👤 ' + n;
+  $('nameVeil').classList.add('hidden');
+}
+
+/* ================= recos ================= */
+async function loadRecos(){
+  try{
+    const r = await api('list');
+    recos = Array.isArray(r.recos) ? r.recos : [];
+    backendOk = true;
+  }catch(e){
+    backendOk = false;
+    recos = [];
+  }
+  renderFeed();
+}
+
+/* ================= voice ================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, listening = false;
+
+function initSR(){
+  if(!SR) return null;
+  const r = new SR();
+  r.lang = 'fr-FR';
+  r.interimResults = true;
+  r.continuous = false;
+  r.onresult = e => {
+    let txt = '';
+    for(const res of e.results) txt += res[0].transcript;
+    $('liveTranscript').textContent = '« ' + txt + ' »';
+    if(e.results[e.results.length-1].isFinal){ handleUtterance(txt.trim()); }
+  };
+  r.onend = () => stopListenUI();
+  r.onerror = ev => {
+    stopListenUI();
+    if(ev.error === 'not-allowed') toast("🎙️ Autorise le micro dans ton navigateur");
+    else if(ev.error !== 'aborted' && ev.error !== 'no-speech') toast("Micro indisponible — utilise le champ texte");
+  };
+  return r;
+}
+function startListenUI(){ listening=true; $('panel').classList.add('listening'); $('micState').textContent="Je t'écoute…"; $('liveTranscript').textContent=''; }
+function stopListenUI(){ listening=false; $('panel').classList.remove('listening'); if($('micState').textContent==="Je t'écoute…") $('micState').textContent='Appuie et parle'; }
+
+$('micBtn').addEventListener('click', () => {
+  if(!SR){ toast("Pas de micro sur ce navigateur — utilise le champ texte 👇"); $('textInput').focus(); return; }
+  if(listening){ recognition && recognition.stop(); return; }
+  recognition = initSR();
+  try{ recognition.start(); startListenUI(); }catch(e){ toast("Impossible de démarrer le micro"); }
+});
+$('textSend').addEventListener('click', () => {
+  const v = $('textInput').value.trim();
+  if(v){ $('textInput').value=''; handleUtterance(v); }
+});
+$('textInput').addEventListener('keydown', e => { if(e.key==='Enter') $('textSend').click(); });
+
+/* ================= flows ================= */
+async function handleUtterance(text){
+  if(!text) return;
+  if(mode==='reco') await extractReco(text);
+  else await answerQuestion(text);
+}
+
+async function extractReco(text){
+  $('micState').innerHTML = '<span class="spinner"></span> Je classe ça…';
+  try{
+    const obj = await api('extract', {text});
+    $('cTitre').value = obj.titre || text;
+    $('cType').value = CATS[obj.type] ? obj.type : 'autre';
+    $('cSenti').value = SENTI[obj.sentiment] ? obj.sentiment : 'aime';
+    $('cComment').value = obj.commentaire || '';
+    $('confirmBox').classList.remove('hidden');
+    $('confirmBox').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){
+    toast(backendOk ? "Analyse impossible, réessaie 🙏" : "⚠️ Webhook n8n injoignable — vérifie que le workflow est activé");
+  }
+  $('micState').textContent = 'Appuie et parle';
+}
+
+$('cSave').addEventListener('click', async () => {
+  if(!userName){ $('nameVeil').classList.remove('hidden'); return; }
+  const reco = {
+    titre: $('cTitre').value.trim() || 'Sans titre',
+    type: $('cType').value,
+    sentiment: $('cSenti').value,
+    commentaire: $('cComment').value.trim(),
+    auteur: userName,
+    date: new Date().toISOString()
+  };
+  $('confirmBox').classList.add('hidden');
+  recos.unshift(reco);       // optimiste
+  renderFeed();
+  try{
+    await api('save', {reco});
+    toast("🎉 Reco publiée pour le cercle !");
+  }catch(e){
+    toast("⚠️ Publication échouée — vérifie le webhook n8n");
+  }
+});
+$('cCancel').addEventListener('click', () => $('confirmBox').classList.add('hidden'));
+
+async function answerQuestion(question){
+  $('micState').innerHTML = '<span class="spinner"></span> Je fouille les recos…';
+  const box = $('answerBox');
+  try{
+    const r = await api('ask', {question, user: userName || 'un ami'});
+    const ans = r.answer || "Hmm, je n'ai pas de réponse.";
+    box.innerHTML = '<strong>💬 ' + escapeHtml(question) + '</strong><br><br>' + escapeHtml(ans);
+    box.classList.remove('hidden');
+    box.scrollIntoView({behavior:'smooth',block:'center'});
+    speak(ans);
+  }catch(e){
+    toast(backendOk ? "Réponse impossible pour l'instant" : "⚠️ Webhook n8n injoignable — vérifie que le workflow est activé");
+  }
+  $('micState').textContent = 'Appuie et parle';
+}
+
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR'; u.rate = 1.02;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= feed ================= */
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function timeAgo(iso){
+  if(!iso) return '';
+  const d = (Date.now() - new Date(iso).getTime())/1000;
+  if(isNaN(d)) return '';
+  if(d<3600) return 'il y a ' + Math.max(1,Math.floor(d/60)) + ' min';
+  if(d<86400) return 'il y a ' + Math.floor(d/3600) + ' h';
+  return 'il y a ' + Math.floor(d/86400) + ' j';
+}
+function renderFilters(){
+  const whos = [...new Set(recos.map(r=>r.auteur).filter(Boolean))];
+  let html = ['all','film','serie','bd','livre','resto','autre'].map(c =>
+    `<button class="chip ${filterCat===c?'active':''}" data-cat="${c}">${c==='all'?'Tout':CATS[c].emoji+' '+CATS[c].label}</button>`).join('');
+  html += whos.map(w =>
+    `<button class="chip ${filterWho===w?'active':''}" data-who="${escapeHtml(w)}">👤 ${escapeHtml(w)}</button>`).join('');
+  $('filters').innerHTML = html;
+  $('filters').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { filterCat = (filterCat===b.dataset.cat||b.dataset.cat==='all') ? 'all' : b.dataset.cat; renderFeed(); });
+  $('filters').querySelectorAll('[data-who]').forEach(b => b.onclick = () => { filterWho = filterWho===b.dataset.who ? 'all' : b.dataset.who; renderFeed(); });
+}
+function renderFeed(){
+  renderFilters();
+  let list = recos;
+  if(filterCat!=='all') list = list.filter(r=>r.type===filterCat);
+  if(filterWho!=='all') list = list.filter(r=>r.auteur===filterWho);
+  $('count').textContent = list.length ? list.length + ' reco' + (list.length>1?'s':'') : '';
+  if(!list.length){
+    let msg;
+    if(!backendOk) msg = "<b>Connexion au backend impossible.</b><br>Vérifie que le workflow n8n est bien <b>activé</b> et que l'URL du webhook en haut du fichier est la bonne.";
+    else if(recos.length) msg = 'Rien avec ces filtres.';
+    else msg = "<b>Le mur est vide !</b><br>Appuie sur le micro et raconte ta dernière découverte — film, BD, resto… Tes amis verront ta reco ici.";
+    $('feed').innerHTML = `<div class="empty">${msg}</div>`;
+    return;
+  }
+  $('feed').innerHTML = list.map(r => {
+    const cat = CATS[r.type] || CATS.autre;
+    return `<div class="card">
+      <div class="cardtop">
+        <span class="cat ${r.type}" style="background:${cat.color}">${cat.emoji} ${cat.label}</span>
+        <span class="senti">${SENTI[r.sentiment]||'🙂'}</span>
+      </div>
+      <h3>${escapeHtml(r.titre)}</h3>
+      ${r.commentaire ? `<p class="comment">« ${escapeHtml(r.commentaire)} »</p>` : ''}
+      <div class="meta"><span>par <b>${escapeHtml(r.auteur||'?')}</b></span><span>${timeAgo(r.date)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ================= modes & modal ================= */
+$('tabReco').onclick = () => setMode('reco');
+$('tabAsk').onclick = () => setMode('ask');
+function setMode(m){
+  mode = m;
+  $('tabReco').classList.toggle('active', m==='reco');
+  $('tabAsk').classList.toggle('active', m==='ask');
+  $('answerBox').classList.add('hidden');
+  $('confirmBox').classList.add('hidden');
+  if(m==='reco'){
+    $('panelTitle').textContent = 'Raconte ta dernière découverte';
+    $('panelHint').textContent = "Ex. « J'ai adoré Star Wars l'attaque des clones » ou « Le resto Chez Marcel, bof »";
+    $('textInput').placeholder = '…ou écris-le ici';
+  }else{
+    $('panelTitle').textContent = 'Pose ta question au cercle';
+    $('panelHint').textContent = "Ex. « Quelles sont les recos du moment d'Olivier ? » ou « Un bon resto conseillé récemment ? »";
+    $('textInput').placeholder = '…ou écris ta question';
+  }
+}
+$('whoBtn').onclick = () => { $('nameInput').value = userName || ''; $('nameVeil').classList.remove('hidden'); };
+$('nameSave').onclick = () => { const n = $('nameInput').value.trim(); if(n) saveName(n); };
+$('nameInput').addEventListener('keydown', e => { if(e.key==='Enter') $('nameSave').click(); });
+
+/* ================= boot ================= */
+loadName();
+loadRecos();
+</script>
+</body>
+</html>
