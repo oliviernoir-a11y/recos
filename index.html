@@ -9,7 +9,7 @@
 <style>
   :root{
     --paper:#FFFDF6; --ink:#1A1B25; --ink-soft:#5A5C6B;
-    --film:#2547D0; --serie:#7A3FF2; --bd:#F2B705; --livre:#0E8A5F; --resto:#E5484D; --musique:#D6409F; --autre:#6B7280;
+    --film:#2547D0; --serie:#7A3FF2; --bd:#F2B705; --livre:#0E8A5F; --resto:#E5484D; --autre:#6B7280;
     --jaune:#FFE45C; --radius:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -58,7 +58,6 @@
   .confirm label{font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin:10px 0 4px}
   .confirm input,.confirm select,.confirm textarea{width:100%;border:2px solid var(--ink);border-radius:10px;padding:9px 10px;font:inherit;font-size:14px;background:var(--paper)}
   .confirm textarea{resize:vertical;min-height:54px}
-  .uncertain{background:#FFF3CD;border:2px solid var(--ink);border-radius:10px;padding:9px 11px;font-size:13px;font-weight:600;margin-bottom:6px}
   .btnrow{display:flex;gap:10px;margin-top:16px}
   .btn{flex:1;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;padding:12px;border:2px solid var(--ink);border-radius:14px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
   .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
@@ -116,7 +115,7 @@
 
   <div class="panel" id="panel">
     <h2 id="panelTitle">Raconte ta dernière découverte</h2>
-    <p class="hint" id="panelHint">Ex. « J'ai adoré la dernière BD d'Astérix » ou « Le dernier album de Christine and the Queens, énorme »</p>
+    <p class="hint" id="panelHint">Ex. « J'ai adoré Star Wars l'attaque des clones » ou « Le resto Chez Marcel, bof »</p>
     <div class="micwrap" id="micwrap">
       <div class="pulse"></div><div class="pulse p2"></div>
       <button class="mic" id="micBtn" aria-label="Enregistrer à la voix">🎙️</button>
@@ -131,7 +130,6 @@
 
   <div class="confirm hidden" id="confirmBox">
     <h3>✅ C'est bien ça ?</h3>
-    <div id="uncertainNote" class="uncertain hidden">🤔 Je ne suis pas sûr à 100% du titre exact — vérifie-le avant de publier.</div>
     <label>Titre</label>
     <input id="cTitre">
     <label>Catégorie</label>
@@ -141,7 +139,6 @@
       <option value="bd">💥 BD</option>
       <option value="livre">📚 Livre</option>
       <option value="resto">🍽️ Resto</option>
-      <option value="musique">🎵 Musique</option>
       <option value="autre">✨ Autre</option>
     </select>
     <label>Verdict</label>
@@ -197,7 +194,6 @@ const CATS = {
   bd:{label:'BD',emoji:'💥',color:'var(--bd)'},
   livre:{label:'Livre',emoji:'📚',color:'var(--livre)'},
   resto:{label:'Resto',emoji:'🍽️',color:'var(--resto)'},
-  musique:{label:'Musique',emoji:'🎵',color:'var(--musique)'},
   autre:{label:'Autre',emoji:'✨',color:'var(--autre)'}
 };
 const SENTI = {adore:'😍',aime:'🙂',bof:'😐',deteste:'🤮'};
@@ -302,7 +298,6 @@ async function extractReco(text){
     $('cType').value = CATS[obj.type] ? obj.type : 'autre';
     $('cSenti').value = SENTI[obj.sentiment] ? obj.sentiment : 'aime';
     $('cComment').value = obj.commentaire || '';
-    $('uncertainNote').classList.toggle('hidden', !obj.titre_incertain);
     $('confirmBox').classList.remove('hidden');
     $('confirmBox').scrollIntoView({behavior:'smooth',block:'center'});
   }catch(e){
@@ -371,7 +366,7 @@ function timeAgo(iso){
 }
 function renderFilters(){
   const whos = [...new Set(recos.map(r=>r.auteur).filter(Boolean))];
-  let html = ['all','film','serie','bd','livre','resto','musique','autre'].map(c =>
+  let html = ['all','film','serie','bd','livre','resto','autre'].map(c =>
     `<button class="chip ${filterCat===c?'active':''}" data-cat="${c}">${c==='all'?'Tout':CATS[c].emoji+' '+CATS[c].label}</button>`).join('');
   html += whos.map(w =>
     `<button class="chip ${filterWho===w?'active':''}" data-who="${escapeHtml(w)}">👤 ${escapeHtml(w)}</button>`).join('');
@@ -418,7 +413,7 @@ function setMode(m){
   $('confirmBox').classList.add('hidden');
   if(m==='reco'){
     $('panelTitle').textContent = 'Raconte ta dernière découverte';
-    $('panelHint').textContent = "Ex. « J'ai adoré la dernière BD d'Astérix » ou « Le dernier album de Christine and the Queens, énorme »";
+    $('panelHint').textContent = "Ex. « J'ai adoré Star Wars l'attaque des clones » ou « Le resto Chez Marcel, bof »";
     $('textInput').placeholder = '…ou écris-le ici';
   }else{
     $('panelTitle').textContent = 'Pose ta question au cercle';
