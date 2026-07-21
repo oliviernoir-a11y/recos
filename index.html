@@ -44,6 +44,10 @@
   .listening .mic{background:var(--resto)}
   .micstate{font-size:13px;font-weight:600;min-height:18px}
   .transcript{font-size:15px;font-style:italic;color:var(--ink-soft);min-height:22px;margin-top:8px;padding:0 6px}
+  .vumeter{width:160px;height:10px;margin:10px auto 2px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--paper)}
+  .vubar{height:100%;width:0%;background:var(--jaune);transition:width .08s linear}
+  .vubar.loud{background:var(--livre)}
+  .vubar.quiet{background:var(--resto)}
 
   .altrow{margin-top:14px;display:flex;gap:8px}
   .altrow input{flex:1;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;background:var(--paper)}
@@ -122,6 +126,7 @@
       <button class="mic" id="micBtn" aria-label="Enregistrer à la voix">🎙️</button>
     </div>
     <div class="micstate" id="micState">Appuie et parle</div>
+    <div class="vumeter hidden" id="vumeter"><div class="vubar" id="vubar"></div></div>
     <div class="transcript" id="liveTranscript"></div>
     <div class="altrow">
       <input id="textInput" placeholder="…ou écris-le ici" aria-label="Saisie texte">
@@ -253,6 +258,42 @@ async function loadRecos(){
 /* ================= voice ================= */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null, listening = false;
+let gotSpeech = false;          // a-t-on capté au moins un mot ?
+let heardSound = false;         // le micro a-t-il capté du volume ?
+
+/* ---- VU-mètre via Web Audio API ---- */
+let audioCtx = null, analyser = null, micStream = null, rafId = null;
+async function startMeter(){
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    src.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    $('vumeter').classList.remove('hidden');
+    const loop = () => {
+      analyser.getByteFrequencyData(data);
+      let sum = 0; for(const v of data) sum += v;
+      const level = Math.min(100, (sum / data.length) * 2.2);   // 0..100
+      const bar = $('vubar');
+      bar.style.width = level + '%';
+      bar.classList.toggle('quiet', level < 12);
+      bar.classList.toggle('loud', level >= 12);
+      if(level >= 12) heardSound = true;
+      rafId = requestAnimationFrame(loop);
+    };
+    loop();
+  }catch(e){ /* pas grave, le VU est un bonus */ }
+}
+function stopMeter(){
+  if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream = null; }
+  if(audioCtx){ audioCtx.close().catch(()=>{}); audioCtx = null; }
+  $('vumeter').classList.add('hidden');
+  $('vubar').style.width = '0%';
+}
 
 function initSR(){
   if(!SR) return null;
@@ -263,19 +304,44 @@ function initSR(){
   r.onresult = e => {
     let txt = '';
     for(const res of e.results) txt += res[0].transcript;
-    $('liveTranscript').textContent = '« ' + txt + ' »';
+    if(txt.trim()){ gotSpeech = true; }
+    $('liveTranscript').textContent = txt ? '« ' + txt + ' »' : '';
     if(e.results[e.results.length-1].isFinal){ handleUtterance(txt.trim()); }
   };
-  r.onend = () => stopListenUI();
+  r.onend = () => {
+    stopListenUI();
+    if(!gotSpeech){
+      if(heardSound){
+        $('micState').textContent = "Trop de bruit pour bien t'entendre 😕";
+        $('liveTranscript').textContent = "Rapproche le micro, mets un écouteur, ou écris ci-dessous 👇";
+      }else{
+        $('micState').textContent = "Je n'ai rien entendu";
+        $('liveTranscript').textContent = "Réessaie plus près du micro, ou écris ci-dessous 👇";
+      }
+      $('textInput').focus();
+    }
+  };
   r.onerror = ev => {
     stopListenUI();
     if(ev.error === 'not-allowed') toast("🎙️ Autorise le micro dans ton navigateur");
-    else if(ev.error !== 'aborted' && ev.error !== 'no-speech') toast("Micro indisponible — utilise le champ texte");
+    else if(ev.error === 'no-speech'){ /* géré dans onend */ }
+    else if(ev.error !== 'aborted') toast("Micro capricieux — utilise le champ texte 👇");
   };
   return r;
 }
-function startListenUI(){ listening=true; $('panel').classList.add('listening'); $('micState').textContent="Je t'écoute…"; $('liveTranscript').textContent=''; }
-function stopListenUI(){ listening=false; $('panel').classList.remove('listening'); if($('micState').textContent==="Je t'écoute…") $('micState').textContent='Appuie et parle'; }
+function startListenUI(){
+  listening=true; gotSpeech=false; heardSound=false;
+  $('panel').classList.add('listening');
+  $('micState').textContent="Je t'écoute…";
+  $('liveTranscript').textContent='';
+  startMeter();
+}
+function stopListenUI(){
+  listening=false;
+  $('panel').classList.remove('listening');
+  stopMeter();
+  if($('micState').textContent==="Je t'écoute…") $('micState').textContent='Appuie et parle';
+}
 
 $('micBtn').addEventListener('click', () => {
   if(!SR){ toast("Pas de micro sur ce navigateur — utilise le champ texte 👇"); $('textInput').focus(); return; }
@@ -418,6 +484,8 @@ function setMode(m){
   $('tabAsk').classList.toggle('active', m==='ask');
   $('answerBox').classList.add('hidden');
   $('confirmBox').classList.add('hidden');
+  $('liveTranscript').textContent = '';
+  if(!listening) $('micState').textContent = 'Appuie et parle';
   if(m==='reco'){
     $('panelTitle').textContent = 'Raconte ta dernière découverte';
     $('panelHint').textContent = "Ex. « J'ai adoré la dernière BD d'Astérix » ou « Le dernier album de Christine and the Queens, énorme »";
