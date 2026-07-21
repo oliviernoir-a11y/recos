@@ -70,6 +70,12 @@
   .btn.ghost{background:#fff}
 
   .answer{border:2px solid var(--ink);border-radius:20px;background:var(--jaune);box-shadow:5px 5px 0 var(--ink);padding:18px;margin-bottom:22px;font-size:15px;line-height:1.5;text-align:left}
+  .followups{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .followup{font-size:13px;font-weight:600;padding:8px 13px;border:2px solid var(--ink);border-radius:999px;background:#fff;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .08s}
+  .followup:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  .answer-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:2px dashed rgba(26,27,37,.3)}
+  .act{font-size:13px;font-weight:700;padding:9px 13px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+  .act:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
   .answer strong{font-family:'Bricolage Grotesque',sans-serif}
 
   .feedhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
@@ -407,8 +413,34 @@ async function answerQuestion(question){
   try{
     const r = await api('ask', {question, user: userName || 'un ami'});
     const ans = r.answer || "Hmm, je n'ai pas de réponse.";
-    box.innerHTML = '<strong>💬 ' + escapeHtml(question) + '</strong><br><br>' + escapeHtml(ans);
+    const sugg = Array.isArray(r.suggestions) ? r.suggestions : [];
+
+    let html = '<strong>💬 ' + escapeHtml(question) + '</strong><br><br>' + escapeHtml(ans);
+
+    // Puces de relance générées par l'agent
+    if(sugg.length){
+      html += '<div class="followups">';
+      sugg.forEach(s => { html += `<button class="followup" data-q="${escapeHtml(s)}">${escapeHtml(s)} →</button>`; });
+      html += '</div>';
+    }
+    // Boutons d'action : reconnecter au mur
+    html += '<div class="answer-actions">'
+         +  '<button class="act" data-act="wall">🧱 Voir tout le mur</button>'
+         +  '<button class="act" data-act="clear">✕ Fermer</button>'
+         +  '</div>';
+
+    box.innerHTML = html;
     box.classList.remove('hidden');
+
+    // Relances : renvoient une nouvelle question
+    box.querySelectorAll('.followup').forEach(b => b.onclick = () => { answerQuestion(b.dataset.q); });
+    // Actions
+    box.querySelector('[data-act="wall"]').onclick = () => {
+      filterCat='all'; filterWho='all'; renderFeed();
+      document.querySelector('.feedhead').scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    box.querySelector('[data-act="clear"]').onclick = () => { box.classList.add('hidden'); box.innerHTML=''; };
+
     box.scrollIntoView({behavior:'smooth',block:'center'});
     speak(ans);
   }catch(e){
