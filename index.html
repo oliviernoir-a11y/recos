@@ -69,9 +69,15 @@
   .btn.save{background:var(--jaune)}
   .btn.ghost{background:#fff}
 
-  .answer{border:2px solid var(--ink);border-radius:20px;background:var(--jaune);box-shadow:5px 5px 0 var(--ink);padding:18px;margin-bottom:22px;font-size:15px;line-height:1.5;text-align:left}
+  .answer{border:2px solid var(--ink);border-radius:20px;background:#fff;box-shadow:5px 5px 0 var(--ink);padding:16px;margin-bottom:22px;text-align:left}
+  .ans-q{font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:10px}
+  .ans-intro{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:17px;line-height:1.35;background:var(--jaune);border:2px solid var(--ink);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+  .ans-cards{display:flex;flex-direction:column;gap:12px}
+  .ans-cards .card{margin-bottom:0;box-shadow:3px 3px 0 var(--ink)}
+  .avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);color:#fff;font-size:12px;font-weight:800;margin-right:6px;flex:0 0 auto}
+  .byline{display:inline-flex;align-items:center}
   .followups{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-  .followup{font-size:13px;font-weight:600;padding:8px 13px;border:2px solid var(--ink);border-radius:999px;background:#fff;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .08s}
+  .followup{font-size:13px;font-weight:600;padding:8px 13px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .08s}
   .followup:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
   .answer-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:2px dashed rgba(26,27,37,.3)}
   .act{font-size:13px;font-weight:700;padding:9px 13px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
@@ -412,18 +418,25 @@ async function answerQuestion(question){
   const box = $('answerBox');
   try{
     const r = await api('ask', {question, user: userName || 'un ami'});
-    const ans = r.answer || "Hmm, je n'ai pas de réponse.";
+    const intro = r.intro || r.answer || "Voici ce que j'ai trouvé.";
+    const cards = Array.isArray(r.cards) ? r.cards : [];
     const sugg = Array.isArray(r.suggestions) ? r.suggestions : [];
 
-    let html = '<strong>💬 ' + escapeHtml(question) + '</strong><br><br>' + escapeHtml(ans);
+    let html = '<div class="ans-q">💬 ' + escapeHtml(question) + '</div>';
+    html += '<div class="ans-intro">' + escapeHtml(intro) + '</div>';
 
-    // Puces de relance générées par l'agent
+    // Les vraies cartes des recos sélectionnées
+    if(cards.length){
+      html += '<div class="ans-cards">' + cards.map(cardHTML).join('') + '</div>';
+    }
+
+    // Puces de relance
     if(sugg.length){
       html += '<div class="followups">';
       sugg.forEach(s => { html += `<button class="followup" data-q="${escapeHtml(s)}">${escapeHtml(s)} →</button>`; });
       html += '</div>';
     }
-    // Boutons d'action : reconnecter au mur
+    // Actions
     html += '<div class="answer-actions">'
          +  '<button class="act" data-act="wall">🧱 Voir tout le mur</button>'
          +  '<button class="act" data-act="clear">✕ Fermer</button>'
@@ -432,17 +445,15 @@ async function answerQuestion(question){
     box.innerHTML = html;
     box.classList.remove('hidden');
 
-    // Relances : renvoient une nouvelle question
     box.querySelectorAll('.followup').forEach(b => b.onclick = () => { answerQuestion(b.dataset.q); });
-    // Actions
     box.querySelector('[data-act="wall"]').onclick = () => {
       filterCat='all'; filterWho='all'; renderFeed();
       document.querySelector('.feedhead').scrollIntoView({behavior:'smooth',block:'start'});
     };
     box.querySelector('[data-act="clear"]').onclick = () => { box.classList.add('hidden'); box.innerHTML=''; };
 
-    box.scrollIntoView({behavior:'smooth',block:'center'});
-    speak(ans);
+    box.scrollIntoView({behavior:'smooth',block:'start'});
+    speak(intro);
   }catch(e){
     toast(backendOk ? "Réponse impossible pour l'instant" : "⚠️ Webhook n8n injoignable — vérifie que le workflow est activé");
   }
@@ -479,6 +490,29 @@ function renderFilters(){
   $('filters').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { filterCat = (filterCat===b.dataset.cat||b.dataset.cat==='all') ? 'all' : b.dataset.cat; renderFeed(); });
   $('filters').querySelectorAll('[data-who]').forEach(b => b.onclick = () => { filterWho = filterWho===b.dataset.who ? 'all' : b.dataset.who; renderFeed(); });
 }
+function authorColor(name){
+  // couleur stable dérivée du prénom (même personne = même teinte)
+  let h = 0; const s = String(name||'?');
+  for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) % 360;
+  return `hsl(${h},58%,55%)`;
+}
+function authorBadge(name){
+  const initial = (String(name||'?').trim()[0] || '?').toUpperCase();
+  return `<span class="avatar" style="background:${authorColor(name)}">${escapeHtml(initial)}</span>`;
+}
+function cardHTML(r){
+  const cat = CATS[r.type] || CATS.autre;
+  return `<div class="card">
+    <div class="cardtop">
+      <span class="cat ${r.type}" style="background:${cat.color}">${cat.emoji} ${cat.label}</span>
+      <span class="senti">${SENTI[r.sentiment]||'🙂'}</span>
+    </div>
+    <h3>${escapeHtml(r.titre)}</h3>
+    ${r.commentaire ? `<p class="comment">« ${escapeHtml(r.commentaire)} »</p>` : ''}
+    <div class="meta"><span class="byline">${authorBadge(r.auteur)}<b>${escapeHtml(r.auteur||'?')}</b></span><span>${timeAgo(r.date)}</span></div>
+  </div>`;
+}
+
 function renderFeed(){
   renderFilters();
   let list = recos;
@@ -493,18 +527,7 @@ function renderFeed(){
     $('feed').innerHTML = `<div class="empty">${msg}</div>`;
     return;
   }
-  $('feed').innerHTML = list.map(r => {
-    const cat = CATS[r.type] || CATS.autre;
-    return `<div class="card">
-      <div class="cardtop">
-        <span class="cat ${r.type}" style="background:${cat.color}">${cat.emoji} ${cat.label}</span>
-        <span class="senti">${SENTI[r.sentiment]||'🙂'}</span>
-      </div>
-      <h3>${escapeHtml(r.titre)}</h3>
-      ${r.commentaire ? `<p class="comment">« ${escapeHtml(r.commentaire)} »</p>` : ''}
-      <div class="meta"><span>par <b>${escapeHtml(r.auteur||'?')}</b></span><span>${timeAgo(r.date)}</span></div>
-    </div>`;
-  }).join('');
+  $('feed').innerHTML = list.map(cardHTML).join('');
 }
 
 /* ================= modes & modal ================= */
