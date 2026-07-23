@@ -101,6 +101,16 @@
   .card .comment{font-size:14px;color:var(--ink-soft);margin-top:6px;line-height:1.45}
   .card .meta{font-size:12px;color:var(--ink-soft);margin-top:8px;display:flex;justify-content:space-between}
   .card .meta b{color:var(--ink)}
+  .thread{margin-top:10px;padding-top:10px;border-top:2px dashed rgba(26,27,37,.2);display:flex;flex-direction:column;gap:7px}
+  .th{display:flex;align-items:flex-start;font-size:13.5px;line-height:1.4;color:var(--ink)}
+  .th .avatar{width:20px;height:20px;font-size:11px;margin-top:1px}
+  .cardactions{display:flex;gap:8px;margin-top:11px}
+  .lk,.rp{font-size:12.5px;font-weight:700;padding:6px 11px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);cursor:pointer}
+  .lk.on{background:var(--jaune)}
+  .lk:active,.rp:active{transform:translate(1px,1px)}
+  .replybox{display:flex;gap:6px;margin-top:9px}
+  .replybox input{flex:1;border:2px solid var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:var(--paper)}
+  .replybox button{border:2px solid var(--ink);border-radius:10px;background:var(--jaune);padding:0 12px;font-weight:700;font-size:13px;cursor:pointer}
 
   .empty{border:2px dashed var(--ink);border-radius:18px;padding:26px 18px;text-align:center;color:var(--ink-soft);font-size:14px;line-height:1.5;background:rgba(255,255,255,.6)}
   .empty b{color:var(--ink)}
@@ -407,6 +417,7 @@ $('cSave').addEventListener('click', async () => {
   try{
     await api('save', {reco});
     toast("🎉 Reco publiée pour le cercle !");
+    await loadRecos();
   }catch(e){
     toast("⚠️ Publication échouée — vérifie le webhook n8n");
   }
@@ -427,7 +438,10 @@ async function answerQuestion(question){
 
     // Les vraies cartes des recos sélectionnées
     if(cards.length){
-      html += '<div class="ans-cards">' + cards.map(cardHTML).join('') + '</div>';
+      html += '<div class="ans-cards">' + cards.map(function(c){
+        const local = recos.find(function(x){ return x.id === c.id; });
+        return cardHTML(local || c);
+      }).join('') + '</div>';
     }
 
     // Puces de relance
@@ -502,7 +516,14 @@ function authorBadge(name){
 }
 function cardHTML(r){
   const cat = CATS[r.type] || CATS.autre;
-  return `<div class="card">
+  const likers = Array.isArray(r.likers) ? r.likers : [];
+  const retours = Array.isArray(r.retours) ? r.retours : [];
+  const liked = userName && likers.indexOf(userName) !== -1;
+  let likeLabel = likers.length ? (liked ? '❤️ ' : '🤍 ') + likers.length : '🤍 J\'aime';
+  const thread = retours.length ? '<div class="thread">' + retours.map(function(t){
+      return '<div class="th">' + authorBadge(t.a) + '<span><b>' + escapeHtml(t.a || '?') + '</b> ' + escapeHtml(t.t || '') + '</span></div>';
+    }).join('') + '</div>' : '';
+  return `<div class="card" data-id="${escapeHtml(r.id||'')}">
     <div class="cardtop">
       <span class="cat ${r.type}" style="background:${cat.color}">${cat.emoji} ${cat.label}</span>
       <span class="senti">${SENTI[r.sentiment]||'🙂'}</span>
@@ -510,8 +531,82 @@ function cardHTML(r){
     <h3>${escapeHtml(r.titre)}</h3>
     ${r.commentaire ? `<p class="comment">« ${escapeHtml(r.commentaire)} »</p>` : ''}
     <div class="meta"><span class="byline">${authorBadge(r.auteur)}<b>${escapeHtml(r.auteur||'?')}</b></span><span>${timeAgo(r.date)}</span></div>
+    ${thread}
+    <div class="cardactions">
+      <button class="lk${liked?' on':''}" data-like="${escapeHtml(r.id||'')}" title="${escapeHtml(likers.join(', '))}">${likeLabel}</button>
+      <button class="rp" data-reply="1">💬 Réagir</button>
+    </div>
+    <div class="replybox hidden">
+      <input placeholder="Ton retour…" maxlength="240" aria-label="Ton retour">
+      <button data-send="${escapeHtml(r.id||'')}">Envoyer</button>
+    </div>
   </div>`;
 }
+
+function refreshCards(id){
+  const r = recos.find(function(x){ return x.id === id; });
+  if(!r) return;
+  document.querySelectorAll('.card[data-id="' + id + '"]').forEach(function(el){
+    el.outerHTML = cardHTML(r);
+  });
+}
+
+async function pushUpdate(r){
+  return api('update', {
+    recoId: r.id,
+    likers: (r.likers || []).join(', '),
+    retours: JSON.stringify(r.retours || [])
+  });
+}
+
+async function toggleLike(id){
+  if(!userName){ $('nameVeil').classList.remove('hidden'); return; }
+  const r = recos.find(function(x){ return x.id === id; });
+  if(!r) return;
+  r.likers = Array.isArray(r.likers) ? r.likers : [];
+  const i = r.likers.indexOf(userName);
+  if(i === -1) r.likers.push(userName); else r.likers.splice(i, 1);
+  refreshCards(id);
+  try{ await pushUpdate(r); }
+  catch(e){ toast("⚠️ Like non enregistré"); }
+}
+
+async function addRetour(id, texte){
+  if(!userName){ $('nameVeil').classList.remove('hidden'); return; }
+  const r = recos.find(function(x){ return x.id === id; });
+  if(!r) return;
+  r.retours = Array.isArray(r.retours) ? r.retours : [];
+  r.retours.push({ a: userName, t: texte, d: new Date().toISOString() });
+  refreshCards(id);
+  try{ await pushUpdate(r); toast("💬 Retour publié"); }
+  catch(e){ toast("⚠️ Retour non enregistré"); }
+}
+
+/* Délégation : les cartes vivent dans le mur ET dans les réponses */
+document.addEventListener('click', function(e){
+  const lk = e.target.closest('[data-like]');
+  if(lk){ toggleLike(lk.dataset.like); return; }
+  const rp = e.target.closest('[data-reply]');
+  if(rp){
+    const box = rp.closest('.card').querySelector('.replybox');
+    box.classList.toggle('hidden');
+    if(!box.classList.contains('hidden')) box.querySelector('input').focus();
+    return;
+  }
+  const sd = e.target.closest('[data-send]');
+  if(sd){
+    const inp = sd.closest('.replybox').querySelector('input');
+    const v = inp.value.trim();
+    if(v){ inp.value=''; addRetour(sd.dataset.send, v); }
+    return;
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.closest('.replybox')){
+    const btn = e.target.closest('.replybox').querySelector('[data-send]');
+    if(btn) btn.click();
+  }
+});
 
 function renderFeed(){
   renderFilters();
