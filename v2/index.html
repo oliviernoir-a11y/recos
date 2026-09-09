@@ -17,19 +17,20 @@
   body{font-family:'Instrument Sans',system-ui,sans-serif;background:var(--paper);color:var(--ink)}
   .wrap{max-width:460px;margin:0 auto;padding:22px 18px 60px;min-height:100%;display:flex;flex-direction:column}
 
-  .brand{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;letter-spacing:-1px;display:flex;align-items:center;gap:2px}
+  .brand{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;letter-spacing:-1px;display:flex;align-items:center;gap:2px;cursor:pointer}
   .brand .k{background:var(--grape);color:var(--paper);border-radius:8px;padding:0 7px;transform:rotate(-3deg);display:inline-block}
-  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
   .signout{font-size:12.5px;font-weight:600;color:var(--ink-soft);background:none;border:none;cursor:pointer;text-decoration:underline}
 
-  .hero{margin:8px 0 30px}
-  .hero h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;line-height:1.02;letter-spacing:-1px}
-  .hero p{font-size:15.5px;color:var(--ink-soft);margin-top:12px;line-height:1.5;max-width:34ch}
+  .hero{margin:8px 0 26px}
+  .hero h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;line-height:1.03;letter-spacing:-1px}
+  .hero p{font-size:15px;color:var(--ink-soft);margin-top:11px;line-height:1.5;max-width:34ch}
 
   .card{border:2.5px solid var(--line);border-radius:20px;background:#fff;padding:20px;margin-bottom:16px}
   label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
-  input{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px 13px;font:inherit;font-size:15px;background:var(--paper)}
-  input:focus{outline:none;box-shadow:3px 3px 0 var(--grape)}
+  input,select,textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px 13px;font:inherit;font-size:15px;background:var(--paper)}
+  textarea{resize:vertical;min-height:70px}
+  input:focus,select:focus,textarea:focus{outline:none;box-shadow:3px 3px 0 var(--grape)}
 
   .btn{width:100%;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;padding:13px;border:2.5px solid var(--line);border-radius:14px;background:var(--lime);cursor:pointer;box-shadow:4px 4px 0 var(--line);transition:transform .07s,box-shadow .07s;margin-top:14px}
   .btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--line)}
@@ -40,16 +41,24 @@
   .muted{font-size:13px;color:var(--ink-soft);line-height:1.5}
   .center{text-align:center}
   .mt{margin-top:18px}
-  .divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:var(--ink-soft);font-size:12.5px}
-  .divider::before,.divider::after{content:"";flex:1;height:2px;background:rgba(23,21,20,.12)}
+  .link{background:none;border:none;color:var(--grape);font-weight:700;font-size:14px;cursor:pointer;padding:0}
+  .back{font-size:13px;font-weight:600;color:var(--ink-soft);background:none;border:none;cursor:pointer;margin-bottom:16px}
 
-  .teamrow{display:flex;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;background:#fff}
+  .teamrow{display:flex;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:14px;padding:14px 15px;margin-bottom:10px;background:#fff;cursor:pointer}
   .teamrow .nm{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px}
-  .teamrow .go{font-size:13px;font-weight:700;color:var(--grape);background:none;border:none;cursor:pointer}
-  .badge{display:inline-block;background:var(--grape-soft);color:var(--grape);font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .teamrow .arr{color:var(--grape);font-weight:700}
 
-  .invite{background:var(--grape-soft);border:2px solid var(--grape);border-radius:14px;padding:15px;margin-top:14px}
-  .invite p{font-size:13px;color:var(--ink);margin-bottom:10px;font-weight:600}
+  .demande{border:2px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px;background:#fff}
+  .demande .q{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;line-height:1.25}
+  .demande .sub{font-size:12.5px;color:var(--ink-soft);margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{background:var(--grape-soft);color:var(--grape);font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px}
+  .pill.open{background:#E5F7D6;color:#3B7A00}
+
+  .micbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:2px dashed var(--line);border-radius:12px;padding:12px;background:var(--grape-soft);font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+  .micbtn.rec{background:var(--coral);color:#fff;border-style:solid}
+
+  .invite,.sharebox{background:var(--grape-soft);border:2px solid var(--grape);border-radius:14px;padding:15px;margin-top:14px}
+  .invite p,.sharebox p{font-size:13px;color:var(--ink);margin-bottom:10px;font-weight:600}
   .sharebtn{display:block;width:100%;text-align:center;background:#25D366;color:#fff;font-weight:700;padding:11px;border:2.5px solid var(--line);border-radius:12px;box-shadow:3px 3px 0 var(--line);text-decoration:none;font-size:14.5px}
   .copybtn{width:100%;margin-top:8px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:9px;font-weight:600;font-size:13px;cursor:pointer}
 
@@ -59,20 +68,20 @@
   @keyframes sp{to{transform:rotate(360deg)}}
   .hidden{display:none!important}
   .loading{flex:1;display:flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .empty{border:2px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;color:var(--ink-soft);font-size:14px;line-height:1.5}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="top">
-    <div class="brand"><span class="k">ch</span>kif</div>
+    <div class="brand" id="brandHome"><span class="k">ch</span>kif</div>
     <button class="signout hidden" id="signout">Se déconnecter</button>
   </div>
 
-  <!-- écran de chargement initial -->
   <div class="loading" id="boot"><span class="spin"></span></div>
 
-  <!-- ÉCRAN 1 : connexion -->
+  <!-- AUTH -->
   <div id="viewAuth" class="hidden">
     <div class="hero">
       <h1>Les meilleures recos viennent de tes potes.</h1>
@@ -86,45 +95,71 @@
     </div>
   </div>
 
-  <!-- ÉCRAN 1b : email envoyé -->
   <div id="viewSent" class="hidden">
-    <div class="hero">
-      <h1>Regarde tes mails 📬</h1>
-      <p>On vient d'envoyer un lien de connexion à <b id="sentTo"></b>. Ouvre-le sur ce téléphone pour continuer.</p>
-    </div>
-    <div class="card">
-      <p class="muted">Rien reçu après une minute ? Vérifie tes spams, ou réessaie.</p>
-      <button class="btn ghost" id="backToAuth">Changer d'email</button>
-    </div>
+    <div class="hero"><h1>Regarde tes mails 📬</h1>
+      <p>Lien envoyé à <b id="sentTo"></b>. Ouvre-le sur ce téléphone pour continuer.</p></div>
+    <div class="card"><p class="muted">Rien après une minute ? Vérifie tes spams.</p>
+      <button class="btn ghost" id="backToAuth">Changer d'email</button></div>
   </div>
 
-  <!-- ÉCRAN 2 : accueil connecté -->
+  <!-- HOME : liste des teams -->
   <div id="viewHome" class="hidden">
-    <div class="hero">
-      <h1 id="hello">Salut !</h1>
-      <p id="homeSub">Tes teams, et les recos qui vont avec.</p>
-    </div>
-
+    <div class="hero"><h1 id="hello">Salut !</h1><p>Choisis une team, ou crées-en une.</p></div>
     <div id="teamList"></div>
-
     <div class="card">
-      <label for="teamName">Créer une nouvelle team</label>
+      <label for="teamName">Nouvelle team</label>
       <input id="teamName" placeholder="Ex. Les cinéphiles" maxlength="40">
       <button class="btn" id="createTeam">Créer la team</button>
     </div>
+  </div>
 
+  <!-- TEAM : demandes + créer demande + inviter -->
+  <div id="viewTeam" class="hidden">
+    <button class="back" id="backHome">← Mes teams</button>
+    <div class="hero"><h1 id="teamTitle">Team</h1><p>Les demandes en cours dans la team.</p></div>
+
+    <button class="btn grape" id="newDemandeBtn">+ Nouvelle demande</button>
+
+    <div style="margin-top:22px" id="demandeList"></div>
+
+    <button class="link mt" id="inviteToggle">Inviter des amis dans cette team →</button>
     <div id="inviteBox"></div>
   </div>
 
-  <!-- ÉCRAN 3 : rejoindre via lien -->
-  <div id="viewJoin" class="hidden">
+  <!-- NOUVELLE DEMANDE -->
+  <div id="viewNewDemande" class="hidden">
+    <button class="back" id="backTeam">← Retour</button>
+    <div class="hero"><h1>Qu'est-ce que tu cherches ?</h1><p>Pose ta question à la team <b id="ndTeamName"></b>.</p></div>
+    <div class="card">
+      <label>Ta demande</label>
+      <textarea id="ndTexte" placeholder="Ex. Une série pas trop longue à binger ce week-end ?"></textarea>
+      <button class="micbtn" id="ndMic">🎙️ Dicter à la voix</button>
+      <label style="margin-top:16px">Catégorie (optionnel)</label>
+      <select id="ndCat">
+        <option value="">Peu importe</option>
+        <option value="film">🎬 Film</option>
+        <option value="serie">📺 Série</option>
+        <option value="bd">💥 BD</option>
+        <option value="livre">📚 Livre</option>
+        <option value="resto">🍽️ Resto</option>
+        <option value="musique">🎵 Musique</option>
+        <option value="podcast">🎙️ Podcast</option>
+      </select>
+      <button class="btn" id="ndSubmit">Publier & partager</button>
+    </div>
+    <div id="ndShareBox"></div>
+  </div>
+
+  <!-- OUVRIR UNE DEMANDE (via lien) -->
+  <div id="viewDemande" class="hidden">
     <div class="hero">
-      <h1>On t'invite ! 🎉</h1>
-      <p>Tu as été invité à rejoindre la team <b id="joinName">…</b>.</p>
+      <p class="muted" id="dmFrom">Une demande d'un ami</p>
+      <h1 id="dmTexte">…</h1>
+      <p id="dmMeta" class="mt"></p>
     </div>
     <div class="card">
-      <button class="btn grape" id="confirmJoin">Rejoindre la team</button>
-      <button class="btn ghost" id="cancelJoin">Plus tard</button>
+      <p class="muted" id="dmHint">Bientôt : tu pourras répondre ici avec ta reco. (Lot 2)</p>
+      <button class="btn ghost" id="dmGoHome">Aller à mes teams</button>
     </div>
   </div>
 
@@ -135,156 +170,211 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-/* ===== CONFIG ===== */
 const SUPABASE_URL = 'https://sohgdwokwzuuuojdxuql.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvaGdkd29rd3p1dXVvamR4dXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NzU5MzAsImV4cCI6MjEwNDM1MTkzMH0.kMpNGeKEYmtoCoDma9q9LlNdtmFxnghY3-PG8_3Spak';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+const CATS = {film:'🎬 Film',serie:'📺 Série',bd:'💥 BD',livre:'📚 Livre',resto:'🍽️ Resto',musique:'🎵 Musique',podcast:'🎙️ Podcast'};
 const $ = id => document.getElementById(id);
 const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); };
-const show = id => { ['viewAuth','viewSent','viewHome','viewJoin','boot'].forEach(v=>$(v).classList.add('hidden')); $(id).classList.remove('hidden'); };
-const pendingJoinCode = new URLSearchParams(location.search).get('rejoindre');
+const VIEWS = ['viewAuth','viewSent','viewHome','viewTeam','viewNewDemande','viewDemande','boot'];
+const show = id => { VIEWS.forEach(v=>$(v).classList.add('hidden')); $(id).classList.remove('hidden'); };
+const esc = s => (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ===== DÉMARRAGE ===== */
+const params = new URLSearchParams(location.search);
+const joinCode = params.get('rejoindre');
+const demandeId = params.get('demande');
+let currentTeam = null;   // {id, nom, code_invitation}
+
+/* ===== BOOT ===== */
 (async () => {
   const { data:{ session } } = await sb.auth.getSession();
   if(session) await onAuthed(session);
+  else if(demandeId) await openDemandePublic();   // on peut voir une demande avant login
   else show('viewAuth');
 })();
+sb.auth.onAuthStateChange((_e, s) => { if(s) onAuthed(s); });
 
-sb.auth.onAuthStateChange((_e, session) => {
-  if(session) onAuthed(session);
-});
-
-/* ===== CONNEXION ===== */
+/* ===== AUTH ===== */
 $('sendLink').addEventListener('click', async () => {
   const email = $('email').value.trim();
   if(!email || email.indexOf('@')===-1){ toast("Entre un email valide"); return; }
-  const btn = $('sendLink'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
-  // on garde le code d'invitation dans l'URL de retour s'il y en a un
-  const redirect = location.origin + location.pathname + (pendingJoinCode ? '?rejoindre='+encodeURIComponent(pendingJoinCode) : '');
+  const btn=$('sendLink'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  const keep = [];
+  if(joinCode) keep.push('rejoindre='+encodeURIComponent(joinCode));
+  if(demandeId) keep.push('demande='+encodeURIComponent(demandeId));
+  const redirect = location.origin + location.pathname + (keep.length?'?'+keep.join('&'):'');
   const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: redirect } });
   btn.disabled=false; btn.textContent='Recevoir mon lien de connexion';
   if(error){ toast("Erreur : "+error.message); return; }
-  $('sentTo').textContent = email;
-  show('viewSent');
+  $('sentTo').textContent = email; show('viewSent');
 });
 $('backToAuth').addEventListener('click', ()=>show('viewAuth'));
+$('signout').addEventListener('click', async ()=>{ await sb.auth.signOut(); $('signout').classList.add('hidden'); show('viewAuth'); });
+$('brandHome').addEventListener('click', async ()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) goHome(session); });
 
-$('signout').addEventListener('click', async () => {
-  await sb.auth.signOut();
-  $('signout').classList.add('hidden');
-  show('viewAuth');
-});
-
-/* ===== APRÈS CONNEXION ===== */
+/* ===== APRÈS LOGIN ===== */
 async function onAuthed(session){
   $('signout').classList.remove('hidden');
-  // s'assurer que le profil existe et récupérer le prénom
   const uid = session.user.id;
-  let { data: prof } = await sb.from('profiles').select('prenom').eq('id', uid).maybeSingle();
-  if(!prof){ await sb.from('profiles').insert({ id: uid }); prof = { prenom:null }; }
+  let { data: prof } = await sb.from('profiles').select('prenom').eq('id',uid).maybeSingle();
+  if(!prof){ await sb.from('profiles').insert({id:uid}); prof={prenom:null}; }
+  window._prenom = prof.prenom;
 
-  // si on arrive avec un code d'invitation, aller sur l'écran "rejoindre"
-  if(pendingJoinCode){
-    const { data: t } = await sb.rpc('team_par_code', { code: pendingJoinCode });
-    if(t && t.length){
-      $('joinName').textContent = t[0].nom;
-      $('confirmJoin').dataset.teamId = t[0].id;
-      show('viewJoin');
-      return;
-    } else {
-      toast("Lien d'invitation invalide");
-    }
+  if(joinCode){
+    const { data:t } = await sb.rpc('team_par_code',{code:joinCode});
+    if(t && t.length){ await sb.from('memberships').insert({user_id:uid,team_id:t[0].id}).then(()=>{}); toast('🎉 Team rejointe !'); }
+    history.replaceState({},'',location.pathname);
   }
-  await renderHome(session, prof);
+  if(demandeId){ return openDemande(demandeId); }
+  goHome(session);
 }
 
-async function renderHome(session, prof){
-  const prenom = prof && prof.prenom;
-  $('hello').textContent = prenom ? ('Salut '+prenom+' !') : 'Salut !';
-  const { data: memberships } = await sb
-    .from('memberships')
-    .select('team_id, teams(id, nom, code_invitation)')
-    .eq('user_id', session.user.id);
-
-  const list = $('teamList'); list.innerHTML='';
-  if(memberships && memberships.length){
-    memberships.forEach(m => {
-      const t = m.teams; if(!t) return;
-      const row = document.createElement('div');
-      row.className='teamrow';
-      row.innerHTML = `<span class="nm">${escapeHtml(t.nom)}</span>
-        <button class="go" data-code="${escapeHtml(t.code_invitation)}" data-nom="${escapeHtml(t.nom)}">Inviter →</button>`;
+/* ===== HOME ===== */
+async function goHome(session){
+  const uid = session.user.id;
+  $('hello').textContent = window._prenom ? ('Salut '+window._prenom+' !') : 'Salut !';
+  const { data:ms } = await sb.from('memberships').select('teams(id,nom,code_invitation)').eq('user_id',uid);
+  const list=$('teamList'); list.innerHTML='';
+  const teams=(ms||[]).map(m=>m.teams).filter(Boolean);
+  if(teams.length){
+    teams.forEach(t=>{
+      const row=document.createElement('div'); row.className='teamrow';
+      row.innerHTML=`<span class="nm">${esc(t.nom)}</span><span class="arr">→</span>`;
+      row.onclick=()=>openTeam(t);
       list.appendChild(row);
     });
-    list.querySelectorAll('.go').forEach(b => b.onclick = () => showInvite(b.dataset.nom, b.dataset.code));
   } else {
-    list.innerHTML = '<p class="muted mt" style="margin-bottom:18px">Tu n\'as pas encore de team. Crées-en une, ou ouvre le lien d\'invitation d\'un ami.</p>';
+    list.innerHTML='<div class="empty" style="margin-bottom:16px">Pas encore de team. Crées-en une, ou ouvre le lien d\'invitation d\'un ami.</div>';
   }
   show('viewHome');
 }
 
-/* ===== CRÉER UNE TEAM ===== */
-$('createTeam').addEventListener('click', async () => {
-  const nom = $('teamName').value.trim();
-  if(!nom){ toast("Donne un nom à ta team"); return; }
-  const { data:{ session } } = await sb.auth.getSession();
+/* ===== CRÉER TEAM ===== */
+$('createTeam').addEventListener('click', async ()=>{
+  const nom=$('teamName').value.trim(); if(!nom){ toast('Donne un nom'); return; }
+  const {data:{session}}=await sb.auth.getSession();
   const btn=$('createTeam'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
-  const { data, error } = await sb.from('teams')
-    .insert({ nom, createur: session.user.id })
-    .select('id, nom, code_invitation').single();
+  const {data,error}=await sb.from('teams').insert({nom,createur:session.user.id}).select('id,nom,code_invitation').single();
   btn.disabled=false; btn.textContent='Créer la team';
-  if(error){ toast("Erreur : "+error.message); return; }
-  $('teamName').value='';
-  toast("🎉 Team créée !");
-  const { data: prof } = await sb.from('profiles').select('prenom').eq('id', session.user.id).maybeSingle();
-  await renderHome(session, prof);
-  showInvite(data.nom, data.code_invitation);
+  if(error){ toast('Erreur : '+error.message); return; }
+  $('teamName').value=''; toast('🎉 Team créée !');
+  openTeam(data);
 });
 
-/* ===== INVITATION ===== */
-function inviteLink(code){
-  return location.origin + location.pathname + '?rejoindre=' + encodeURIComponent(code);
+/* ===== TEAM ===== */
+async function openTeam(team){
+  currentTeam=team;
+  $('teamTitle').textContent=team.nom;
+  $('inviteBox').innerHTML='';
+  show('viewTeam');
+  const {data:ds}=await sb.from('demandes').select('*').eq('team_id',team.id).order('created_at',{ascending:false});
+  const list=$('demandeList'); list.innerHTML='';
+  if(ds && ds.length){
+    ds.forEach(d=>{
+      const el=document.createElement('div'); el.className='demande';
+      const cat=d.categorie?`<span class="pill">${CATS[d.categorie]||d.categorie}</span>`:'';
+      const st=d.statut==='ouverte'?'<span class="pill open">ouverte</span>':'<span class="pill">close</span>';
+      el.innerHTML=`<div class="q">${esc(d.texte)}</div><div class="sub">${cat}${st}<button class="link" data-share="${d.id}">Partager →</button></div>`;
+      list.appendChild(el);
+    });
+    list.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>shareDemande(b.dataset.share, findText(ds,b.dataset.share)));
+  } else {
+    list.innerHTML='<div class="empty">Aucune demande. Lance la première : « une bonne série ? »</div>';
+  }
 }
-function showInvite(nom, code){
-  const link = inviteLink(code);
-  const msg = `Rejoins ma team "${nom}" sur chkif 👉 ${link}`;
-  const box = $('inviteBox');
-  box.innerHTML = `<div class="invite">
-    <p>Partage ce lien pour inviter tes amis dans « ${escapeHtml(nom)} »</p>
+function findText(ds,id){ const d=ds.find(x=>x.id===id); return d?d.texte:''; }
+$('backHome').addEventListener('click', async ()=>{ const {data:{session}}=await sb.auth.getSession(); goHome(session); });
+
+/* ===== INVITER ===== */
+$('inviteToggle').addEventListener('click', ()=>{
+  if(!currentTeam) return;
+  const link=location.origin+location.pathname+'?rejoindre='+encodeURIComponent(currentTeam.code_invitation);
+  const msg=`Rejoins ma team "${currentTeam.nom}" sur chkif 👉 ${link}`;
+  $('inviteBox').innerHTML=`<div class="invite"><p>Partage ce lien pour inviter tes amis</p>
     <a class="sharebtn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Partager sur WhatsApp</a>
-    <button class="copybtn" id="copyLink">Copier le lien</button>
-  </div>`;
-  $('copyLink').onclick = async () => {
-    try{ await navigator.clipboard.writeText(link); toast("Lien copié !"); }
-    catch(e){ toast(link); }
-  };
-  box.scrollIntoView({behavior:'smooth',block:'center'});
+    <button class="copybtn" id="cpInv">Copier le lien</button></div>`;
+  $('cpInv').onclick=async()=>{ try{await navigator.clipboard.writeText(link);toast('Lien copié !');}catch(e){toast(link);} };
+});
+
+/* ===== NOUVELLE DEMANDE ===== */
+$('newDemandeBtn').addEventListener('click', ()=>{
+  $('ndTexte').value=''; $('ndCat').value=''; $('ndShareBox').innerHTML='';
+  $('ndTeamName').textContent=currentTeam?currentTeam.nom:'';
+  show('viewNewDemande');
+});
+$('backTeam').addEventListener('click', ()=>openTeam(currentTeam));
+
+// voix
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,recing=false;
+$('ndMic').addEventListener('click', ()=>{
+  if(!SR){ toast('Micro non dispo ici — écris ta demande'); return; }
+  if(recing){ rec&&rec.stop(); return; }
+  rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=false;
+  let base=$('ndTexte').value?($('ndTexte').value+' '):'';
+  rec.onresult=e=>{ let t='';for(const r of e.results)t+=r[0].transcript; $('ndTexte').value=base+t; };
+  rec.onstart=()=>{ recing=true; $('ndMic').classList.add('rec'); $('ndMic').textContent='● J\'écoute… (touche pour arrêter)'; };
+  rec.onend=()=>{ recing=false; $('ndMic').classList.remove('rec'); $('ndMic').textContent='🎙️ Dicter à la voix'; };
+  rec.onerror=()=>{ recing=false; $('ndMic').classList.remove('rec'); $('ndMic').textContent='🎙️ Dicter à la voix'; };
+  try{ rec.start(); }catch(e){}
+});
+
+$('ndSubmit').addEventListener('click', async ()=>{
+  const texte=$('ndTexte').value.trim();
+  if(!texte){ toast('Écris ou dicte ta demande'); return; }
+  const {data:{session}}=await sb.auth.getSession();
+  const btn=$('ndSubmit'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  const {data,error}=await sb.from('demandes').insert({
+    auteur:session.user.id, team_id:currentTeam.id, texte, categorie:$('ndCat').value||null
+  }).select('id,texte').single();
+  btn.disabled=false; btn.textContent='Publier & partager';
+  if(error){ toast('Erreur : '+error.message); return; }
+  toast('🎉 Demande publiée !');
+  shareDemande(data.id, data.texte, 'ndShareBox');
+});
+
+/* ===== PARTAGE D'UNE DEMANDE ===== */
+function demandeLink(id){ return location.origin+location.pathname+'?demande='+encodeURIComponent(id); }
+function shareDemande(id, texte, boxId){
+  const link=demandeLink(id);
+  const prenom=window._prenom||'Un ami';
+  const msg=`${prenom} demande à la team : "${texte}" — réponds ici 👉 ${link}`;
+  const html=`<div class="sharebox"><p>Partage ta demande à la team</p>
+    <a class="sharebtn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
+    <button class="copybtn" id="cpDem">Copier le lien</button></div>`;
+  if(boxId){ $(boxId).innerHTML=html; }
+  else {
+    // partage depuis la liste : on réutilise la zone d'invitation de la team
+    $('inviteBox').innerHTML=html; $('inviteBox').scrollIntoView({behavior:'smooth'});
+  }
+  const cp=document.getElementById('cpDem');
+  if(cp) cp.onclick=async()=>{ try{await navigator.clipboard.writeText(link);toast('Lien copié !');}catch(e){toast(link);} };
 }
 
-/* ===== REJOINDRE ===== */
-$('confirmJoin').addEventListener('click', async () => {
-  const teamId = $('confirmJoin').dataset.teamId;
-  const { data:{ session } } = await sb.auth.getSession();
-  const btn=$('confirmJoin'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
-  const { error } = await sb.from('memberships').insert({ user_id: session.user.id, team_id: teamId });
-  btn.disabled=false; btn.textContent='Rejoindre la team';
-  if(error && !String(error.message).includes('duplicate')){ toast("Erreur : "+error.message); return; }
-  // nettoyer l'URL et aller à l'accueil
-  history.replaceState({}, '', location.pathname);
-  toast("🎉 Bienvenue dans la team !");
-  const { data: prof } = await sb.from('profiles').select('prenom').eq('id', session.user.id).maybeSingle();
-  await renderHome(session, prof);
-});
-$('cancelJoin').addEventListener('click', async () => {
-  history.replaceState({}, '', location.pathname);
-  const { data:{ session } } = await sb.auth.getSession();
-  const { data: prof } = await sb.from('profiles').select('prenom').eq('id', session.user.id).maybeSingle();
-  await renderHome(session, prof);
-});
-
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* ===== OUVRIR UNE DEMANDE ===== */
+async function openDemande(id){
+  const { data } = await sb.rpc('demande_par_id',{ d_id:id });
+  history.replaceState({},'',location.pathname);
+  if(!data || !data.length){ toast('Demande introuvable'); const {data:{session}}=await sb.auth.getSession(); if(session) return goHome(session); return show('viewAuth'); }
+  renderDemande(data[0]);
+}
+async function openDemandePublic(){
+  const { data } = await sb.rpc('demande_par_id',{ d_id:demandeId });
+  if(!data || !data.length){ show('viewAuth'); return; }
+  renderDemande(data[0], true);
+}
+function renderDemande(d, publicMode){
+  $('dmFrom').textContent = (d.auteur_prenom?d.auteur_prenom:'Un ami')+' demande à la team '+(d.team_nom||'');
+  $('dmTexte').textContent = d.texte;
+  $('dmMeta').innerHTML = d.categorie ? `<span class="pill">${CATS[d.categorie]||d.categorie}</span>` : '';
+  $('dmHint').textContent = publicMode
+    ? "Connecte-toi pour répondre avec ta reco (bientôt disponible)."
+    : "Bientôt : tu pourras répondre ici avec ta reco. (Lot 2)";
+  $('dmGoHome').textContent = publicMode ? 'Se connecter' : 'Aller à mes teams';
+  $('dmGoHome').onclick = async ()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) goHome(session); else show('viewAuth'); };
+  show('viewDemande');
+}
 </script>
 </body>
 </html>
