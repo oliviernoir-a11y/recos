@@ -167,10 +167,49 @@
       <h1 id="dmTexte">…</h1>
       <p id="dmMeta" class="mt"></p>
     </div>
-    <div class="card">
-      <p class="muted" id="dmHint">Bientôt : tu pourras répondre ici avec ta reco. (Lot 2)</p>
-      <button class="btn ghost" id="dmGoHome">Aller à mes teams</button>
+
+    <!-- si pas connecté -->
+    <div class="card" id="dmLogin">
+      <p class="muted">Connecte-toi pour répondre avec ta reco.</p>
+      <button class="btn grape" id="dmLoginBtn">Se connecter</button>
     </div>
+
+    <!-- si connecté : répondre -->
+    <div class="card" id="dmReply">
+      <label>Ta reco pour cette demande</label>
+      <textarea id="rpTexte" placeholder="Ex. Regarde Severance, c'est génial et pas trop long"></textarea>
+      <button class="micbtn" id="rpMic">🎙️ Dicter ma reco</button>
+      <button class="btn" id="rpSubmit">Envoyer ma reco</button>
+    </div>
+
+    <!-- confirmation extraction -->
+    <div class="card hidden" id="rpConfirm">
+      <p style="font-weight:700;margin-bottom:10px">✅ C'est bien ça ?</p>
+      <div id="rpPreview"></div>
+      <label style="margin-top:12px">Titre</label>
+      <input id="rpcTitre">
+      <label style="margin-top:10px">Catégorie</label>
+      <select id="rpcCat">
+        <option value="film">🎬 Film</option><option value="serie">📺 Série</option>
+        <option value="bd">💥 BD</option><option value="livre">📚 Livre</option>
+        <option value="resto">🍽️ Resto</option><option value="musique">🎵 Musique</option>
+        <option value="podcast">🎙️ Podcast</option><option value="autre">✨ Autre</option>
+      </select>
+      <label style="margin-top:10px">Ton avis</label>
+      <select id="rpcSenti">
+        <option value="adore">😍 Adoré</option><option value="aime">🙂 Aimé</option>
+        <option value="bof">😐 Bof</option><option value="deteste">🤮 Détesté</option>
+      </select>
+      <label style="margin-top:10px">Commentaire</label>
+      <textarea id="rpcComment"></textarea>
+      <button class="btn" id="rpcSave">Publier ma reco</button>
+      <button class="btn ghost" id="rpcCancel">Annuler</button>
+    </div>
+
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:19px;margin:24px 0 12px">Les recos de la team</h2>
+    <div id="reponseList"></div>
+
+    <button class="btn ghost mt" id="dmGoHome">Aller à mes teams</button>
   </div>
 
 </div>
@@ -184,7 +223,9 @@ const SUPABASE_URL = 'https://sohgdwokwzuuuojdxuql.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvaGdkd29rd3p1dXVvamR4dXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NzU5MzAsImV4cCI6MjEwNDM1MTkzMH0.kMpNGeKEYmtoCoDma9q9LlNdtmFxnghY3-PG8_3Spak';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const CATS = {film:'🎬 Film',serie:'📺 Série',bd:'💥 BD',livre:'📚 Livre',resto:'🍽️ Resto',musique:'🎵 Musique',podcast:'🎙️ Podcast'};
+const CATS = {film:'🎬 Film',serie:'📺 Série',bd:'💥 BD',livre:'📚 Livre',resto:'🍽️ Resto',musique:'🎵 Musique',podcast:'🎙️ Podcast',autre:'✨ Autre'};
+const SENTI = {adore:'😍',aime:'🙂',bof:'😐',deteste:'🤮'};
+const N8N_WEBHOOK = 'https://oreegami.app.n8n.cloud/webhook/recos-culturelles';
 const $ = id => document.getElementById(id);
 const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); };
 const VIEWS = ['viewAuth','viewSent','viewHome','viewTeam','viewNewDemande','viewDemande','viewPrenom','boot'];
@@ -397,28 +438,137 @@ function shareDemande(id, texte, boxId){
 }
 
 /* ===== OUVRIR UNE DEMANDE ===== */
+let currentDemande = null;
+let currentDemandeIsPublic = false;
+let pendingReco = null;
+
 async function openDemande(id){
   const { data } = await sb.rpc('demande_par_id',{ d_id:id });
   history.replaceState({},'',location.pathname);
   if(!data || !data.length){ toast('Demande introuvable'); const {data:{session}}=await sb.auth.getSession(); if(session) return goHome(session); return show('viewAuth'); }
-  renderDemande(data[0]);
+  renderDemande(data[0], false);
 }
 async function openDemandePublic(){
   const { data } = await sb.rpc('demande_par_id',{ d_id:demandeId });
   if(!data || !data.length){ show('viewAuth'); return; }
   renderDemande(data[0], true);
 }
-function renderDemande(d, publicMode){
+
+async function renderDemande(d, publicMode){
+  currentDemande = d;
+  currentDemandeIsPublic = publicMode;
   $('dmFrom').textContent = (d.auteur_prenom?d.auteur_prenom:'Un ami')+' demande à la team '+(d.team_nom||'');
   $('dmTexte').textContent = d.texte;
   $('dmMeta').innerHTML = d.categorie ? `<span class="pill">${CATS[d.categorie]||d.categorie}</span>` : '';
-  $('dmHint').textContent = publicMode
-    ? "Connecte-toi pour répondre avec ta reco (bientôt disponible)."
-    : "Bientôt : tu pourras répondre ici avec ta reco. (Lot 2)";
+
+  // affichage conditionnel : connecté → répondre, sinon → login
+  $('dmLogin').classList.toggle('hidden', !publicMode);
+  $('dmReply').classList.toggle('hidden', publicMode);
+  $('rpConfirm').classList.add('hidden');
+  $('rpTexte').value='';
+
   $('dmGoHome').textContent = publicMode ? 'Se connecter' : 'Aller à mes teams';
   $('dmGoHome').onclick = async ()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) goHome(session); else show('viewAuth'); };
+
   show('viewDemande');
+  loadReponses(d.id);
 }
+
+$('dmLoginBtn').addEventListener('click', ()=>{
+  // on garde la demande dans l'URL pour revenir dessus après login
+  location.href = location.origin+location.pathname+'?demande='+encodeURIComponent(currentDemande.id);
+});
+
+/* --- fil des réponses --- */
+async function loadReponses(demandeId){
+  const { data } = await sb.rpc('reponses_de_demande',{ d_id:demandeId });
+  const list=$('reponseList'); list.innerHTML='';
+  if(!data || !data.length){ list.innerHTML='<div class="empty">Aucune reco pour l\'instant. Sois le premier !</div>'; return; }
+  data.forEach(r=>{
+    const el=document.createElement('div'); el.className='demande';
+    const cover = r.visuel ? `<img src="${esc(r.visuel)}" alt="" style="width:46px;height:66px;object-fit:cover;border:2px solid var(--line);border-radius:8px;flex:0 0 auto" onerror="this.remove()">` : '';
+    el.innerHTML = `<div style="display:flex;gap:11px;align-items:flex-start">
+        ${cover}
+        <div style="flex:1;min-width:0">
+          <div class="q">${SENTI[r.sentiment]||''} ${esc(r.titre)}</div>
+          ${r.meta?`<div class="sub">${esc(r.meta)}</div>`:''}
+          ${r.commentaire?`<div style="font-size:13.5px;color:var(--ink-soft);margin-top:5px">« ${esc(r.commentaire)} »</div>`:''}
+          <div class="sub">par <b>${esc(r.auteur_prenom||'?')}</b></div>
+        </div>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+/* --- dictée de la reco --- */
+let rrec=null, rrecing=false;
+$('rpMic').addEventListener('click', ()=>{
+  if(!SR){ toast('Micro non dispo ici — écris ta reco'); return; }
+  if(rrecing){ rrec&&rrec.stop(); return; }
+  rrec=new SR(); rrec.lang='fr-FR'; rrec.interimResults=true; rrec.continuous=false;
+  let base=$('rpTexte').value?($('rpTexte').value+' '):'';
+  rrec.onresult=e=>{ let t='';for(const r of e.results)t+=r[0].transcript; $('rpTexte').value=base+t; };
+  rrec.onstart=()=>{ rrecing=true; $('rpMic').classList.add('rec'); $('rpMic').textContent='● J\'écoute…'; };
+  rrec.onend=()=>{ rrecing=false; $('rpMic').classList.remove('rec'); $('rpMic').textContent='🎙️ Dicter ma reco'; };
+  rrec.onerror=()=>{ rrecing=false; $('rpMic').classList.remove('rec'); $('rpMic').textContent='🎙️ Dicter ma reco'; };
+  try{ rrec.start(); }catch(e){}
+});
+
+/* --- envoi : extraction + enrichissement via n8n --- */
+$('rpSubmit').addEventListener('click', async ()=>{
+  const texte=$('rpTexte').value.trim();
+  if(!texte){ toast('Dicte ou écris ta reco'); return; }
+  const btn=$('rpSubmit'); btn.disabled=true; btn.innerHTML='<span class="spin"></span> J\'analyse…';
+  try{
+    const resp = await fetch(N8N_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'extract',text:texte})});
+    const obj = await resp.json();
+    pendingReco = {
+      titre: obj.titre || texte,
+      categorie: CATS[obj.type]?obj.type:'autre',
+      sentiment: SENTI[obj.sentiment]?obj.sentiment:'aime',
+      commentaire: obj.commentaire||'',
+      visuel: obj.visuel||'',
+      meta: obj.meta||''
+    };
+    $('rpcTitre').value=pendingReco.titre;
+    $('rpcCat').value=pendingReco.categorie;
+    $('rpcSenti').value=pendingReco.sentiment;
+    $('rpcComment').value=pendingReco.commentaire;
+    $('rpPreview').innerHTML = (pendingReco.visuel||pendingReco.meta)
+      ? `<div style="display:flex;gap:10px;align-items:center">${pendingReco.visuel?`<img src="${esc(pendingReco.visuel)}" style="width:44px;height:64px;object-fit:cover;border:2px solid var(--line);border-radius:8px" onerror="this.remove()">`:''}<span class="muted">${esc(pendingReco.meta||'')}</span></div>`
+      : '';
+    $('dmReply').classList.add('hidden');
+    $('rpConfirm').classList.remove('hidden');
+  }catch(e){
+    toast("Analyse impossible — réessaie");
+  }
+  btn.disabled=false; btn.innerHTML='Envoyer ma reco';
+});
+
+$('rpcCancel').addEventListener('click', ()=>{ $('rpConfirm').classList.add('hidden'); $('dmReply').classList.remove('hidden'); });
+
+$('rpcSave').addEventListener('click', async ()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ toast('Connecte-toi'); return; }
+  const btn=$('rpcSave'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  const { error } = await sb.from('reponses').insert({
+    demande_id: currentDemande.id,
+    auteur: session.user.id,
+    titre: $('rpcTitre').value.trim()||'Sans titre',
+    categorie: $('rpcCat').value,
+    sentiment: $('rpcSenti').value,
+    commentaire: $('rpcComment').value.trim(),
+    visuel: pendingReco?pendingReco.visuel:'',
+    meta: pendingReco?pendingReco.meta:''
+  });
+  btn.disabled=false; btn.textContent='Publier ma reco';
+  if(error){ toast('Erreur : '+error.message); return; }
+  toast('🎉 Reco envoyée !');
+  $('rpConfirm').classList.add('hidden');
+  $('dmReply').classList.remove('hidden');
+  $('rpTexte').value='';
+  loadReponses(currentDemande.id);
+});
 </script>
 </body>
 </html>
