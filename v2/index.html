@@ -81,6 +81,16 @@
 
   <div class="loading" id="boot"><span class="spin"></span></div>
 
+  <!-- PRÉNOM (première fois) -->
+  <div id="viewPrenom" class="hidden">
+    <div class="hero"><h1>Comment tu t'appelles ?</h1><p>Ton prénom apparaîtra sur tes demandes et tes recos, pour que ta team te reconnaisse.</p></div>
+    <div class="card">
+      <label for="prenomInput">Ton prénom</label>
+      <input id="prenomInput" placeholder="Ex. Olivier" maxlength="30" autocomplete="given-name">
+      <button class="btn grape" id="prenomSave">Continuer</button>
+    </div>
+  </div>
+
   <!-- AUTH -->
   <div id="viewAuth" class="hidden">
     <div class="hero">
@@ -177,7 +187,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 const CATS = {film:'🎬 Film',serie:'📺 Série',bd:'💥 BD',livre:'📚 Livre',resto:'🍽️ Resto',musique:'🎵 Musique',podcast:'🎙️ Podcast'};
 const $ = id => document.getElementById(id);
 const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); };
-const VIEWS = ['viewAuth','viewSent','viewHome','viewTeam','viewNewDemande','viewDemande','boot'];
+const VIEWS = ['viewAuth','viewSent','viewHome','viewTeam','viewNewDemande','viewDemande','viewPrenom','boot'];
 const show = id => { VIEWS.forEach(v=>$(v).classList.add('hidden')); $(id).classList.remove('hidden'); };
 const esc = s => (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -223,7 +233,12 @@ async function onAuthed(session){
 
   if(joinCode){
     const { data:t } = await sb.rpc('team_par_code',{code:joinCode});
-    if(t && t.length){ await sb.from('memberships').insert({user_id:uid,team_id:t[0].id}).then(()=>{}); toast('🎉 Team rejointe !'); }
+    if(t && t.length){
+      if(await ensurePrenom()){
+        await sb.from('memberships').insert({user_id:uid,team_id:t[0].id}).then(()=>{});
+        toast('🎉 Team rejointe !');
+      }
+    }
     history.replaceState({},'',location.pathname);
   }
   if(demandeId){ return openDemande(demandeId); }
@@ -250,9 +265,38 @@ async function goHome(session){
   show('viewHome');
 }
 
+/* ===== PRÉNOM ===== */
+let _prenomResolve = null;
+function askPrenom(){
+  return new Promise(resolve => {
+    _prenomResolve = resolve;
+    $('prenomInput').value = window._prenom || '';
+    show('viewPrenom');
+    setTimeout(()=>$('prenomInput').focus(), 100);
+  });
+}
+async function ensurePrenom(){
+  if(window._prenom && window._prenom.trim()) return true;
+  await askPrenom();
+  return !!(window._prenom && window._prenom.trim());
+}
+$('prenomSave').addEventListener('click', async ()=>{
+  const p = $('prenomInput').value.trim();
+  if(!p){ toast('Entre ton prénom'); return; }
+  const {data:{session}}=await sb.auth.getSession();
+  const btn=$('prenomSave'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  const { error } = await sb.from('profiles').update({ prenom:p }).eq('id', session.user.id);
+  btn.disabled=false; btn.textContent='Continuer';
+  if(error){ toast('Erreur : '+error.message); return; }
+  window._prenom = p;
+  if(_prenomResolve){ const r=_prenomResolve; _prenomResolve=null; r(true); }
+});
+$('prenomInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('prenomSave').click(); });
+
 /* ===== CRÉER TEAM ===== */
 $('createTeam').addEventListener('click', async ()=>{
   const nom=$('teamName').value.trim(); if(!nom){ toast('Donne un nom'); return; }
+  if(!(await ensurePrenom())) return;
   const {data:{session}}=await sb.auth.getSession();
   const btn=$('createTeam'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   const {data,error}=await sb.from('teams').insert({nom,createur:session.user.id}).select('id,nom,code_invitation').single();
